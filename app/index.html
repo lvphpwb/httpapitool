@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html ng-app>
+<head>
+    <title>HttpApi测试工具</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <script src="./js/angular.min.js" ></script>
+    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet"/>
+    <link href="./css/index.css" rel="stylesheet"/>
+    <link href="./lvjs/css/style.css" rel="stylesheet"/>
+    <style type="text/css">
+    </style>
+</head>
+<body ng-controller="appController">
+    <div class="navbar navbar-inverse navbar-fixed-top" style="-webkit-app-region: drag;" ng-controller="windowsController">
+        <div class="container">
+            <div class="navbar-header">
+                <img src="img/logo.png">
+                <a class="navbar-brand" style="color:#fff;font-family:'微软雅黑'">HTTP API 测试工具</a>
+            </div>
+            <div class="collapse navbar-collapse">
+<!--                 <ul class="nav navbar-nav">
+                    <li><a href="javascript:;" av-network="" style="color:#fff;">API 调试</a></li>
+                    <li><a href="javascript:;">HOST 指定</a></li>
+                    <li><a href="javascript:;">工具设置</a></li>
+                </ul> -->
+                <div class="btn-group window-tool">
+                    <a class="btn rectbtn toolmini" ng-click="miniWindow()"><i class="glyphicon glyphicon-minus"></i></a>
+                    <a class="btn rectbtn toolfullscreen" ng-click="changeWindow()"><i class="glyphicon" ng-class="changeType"></i></a>
+                    <a class="btn rectbtn toolclose" ng-click="closeWindow()"><i class="glyphicon glyphicon-remove"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container app ng-scope" ui-view="" ng-animate="'view'">
+        <div class="content ng-scope" id="studioContent">
+            <div class="sidebar sidebar-middle" ng-controller="requestdataController">
+                <div class="list-group code-tool">
+                    <div class="btn-group">
+                        <a href="javascript://" class="btn btn-primary historylist" ng-class="{current: showtab=='history'}" style="border-radius:0;" title="历史记录" ng-click="showtab='history'"><i class="glyphicon glyphicon-time"></i> 历史记录</a>
+                        <a href="javascript://" class="btn btn-primary collectionlist" ng-class="{current: showtab=='collection'}" style="border-radius:0;" title="本地存档" ng-click="showtab='collection'"><i class="glyphicon glyphicon-tags"></i> 本地存档</a>
+                    </div>
+                </div>
+                <div id="historylist" class="requestlist" ng-show="showtab=='history'">
+                    <div class='request' ng-repeat="history in historydata"><a class='showapi' ng-click="showApi(history, $event)"><span class='label label-success'>{{history.type}}</span>&nbsp;<span>{{history.url}}</span></a><a class='requestdel' title='点击删除' ng-click="delHistory(history)"><img src='./img/delete.png'/></a></div>
+                    <p ng-show="historydata.length==0">暂时没有历史数据！</p>
+                </div>
+                <div id="collectionlist" class="requestlist" ng-show="showtab=='collection'">
+                    <div ng-repeat="collect in collectiondata">
+                        <div class="collecttitle request" ng-click="showSelfRequest($index)">
+                            <a class='showapi'><span>{{collect.collectionname}}</span></a><a class='requestdel' title='点击删除' ng-click="delCollection(collect, $event)"><img src='./img/delete.png'/></a>
+                        </div>
+                        <div class="request_{{$index}}">
+                            <div class="collectrequest request" ng-repeat="request in collect.request">
+                                <a class='showapi' ng-click="showApi(request.apidata, $event)"><span class='label label-success'>{{request.apidata.type}}</span>&nbsp;<span>{{request.requestname}}</span></a><a class='requestdel' title='点击删除' ng-click="delRequest(request, collect)"><img src='./img/delete.png'/></a>
+                            </div>
+                        </div>
+                    </div>
+                    <p ng-show="collectiondata.length==0">暂时没有存档数据！</p>
+                </div>
+            </div>
+            <div class="container-right container-right-middle" ng-controller="apiconfController">
+                <div class="list-group editor-tool">
+                    <div class="requesttitle">API 配置</div>
+                </div>
+                <div class="requestform">
+                    <form id="apirequestform">
+                        <div class="form-group" style=" clear: both; height:35px; margin-bottom:0px;">
+                            <input id="url" type="text" class="form-control" placeholder="API url地址" style="width: calc(100% - 441px); float:left;" ng-model="apidata.url"/>
+                            <input id="host" type="text" class="form-control" placeholder="HOST 指定" style="width:135px; float:left;" ng-model="apidata.host"/>
+                            <select id="requesttype" class="form-control" style="width:100px; float:left; margin-left:5px;" ng-model="apidata.type" ng-change="changeType()">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                            <input type="button" class="btn btn-info" value="URL参数" style="float:left; margin-left:5px;" ng-click="showUrlParms()"/>
+                            <input type="button" class="btn btn-info" value="HEADER参数" style="float:left; margin-left:5px;" ng-click="showHeaderParms()"/>
+                        </div>
+                        <div class="parmlist" id="urlparmlist" ng-show="isShowUrlParms">
+                            <div class="parminputdiv" ng-repeat="urlparm in apidata.urlparms"><span class="label label-info leftspan">U</span><input class="form-control parminput parmnew urlparmkey" type="text" placeholder="URL参数 KEY" ng-model="apidata.urlparms[$index]['key']"/><input class="form-control parminput parmnew urlparmvalue" type="text" placeholder="URL参数 VALUE" ng-model="apidata.urlparms[$index]['value']"/><a class="delparm" title="点击删除" ng-click="delUrlParm(urlparm)"><img src="./img/delete.png"></a></div>
+                            <div class="parminputdiv"><span class="label label-info leftspan">U</span><input class="form-control parminput parmnew" ng-focus="addParms('url', 'key')" type="text" placeholder="URL参数 KEY"/><input class="form-control parminput parmnew" ng-focus="addParms('url', 'value')" type="text" placeholder="URL参数 VALUE"/></div>
+                        </div>
+                        <div class="parmlist" id="headerparmlist" ng-show="isShowHeaderParms">
+                            <div class="parminputdiv" ng-repeat="headerparm in apidata.headerparms"><span class="label label-info leftspan">H</span><input class="form-control parminput parmnew headerparmkey" type="text" placeholder="HEADER参数 KEY" ng-model="apidata.headerparms[$index]['key']"/><input class="form-control parminput parmnew headerparmvalue" type="text" placeholder="HEADER参数 VALUE" ng-model="apidata.headerparms[$index]['value']"/><a class="delparm" title="点击删除" ng-click="delHeaderParm(headerparm)"><img src="./img/delete.png"></a></div>
+                            <div class="parminputdiv"><span class="label label-info leftspan">H</span><input class="form-control parminput parmnew" ng-focus="addParms('header', 'key')" type="text" placeholder="HEADER参数 KEY"/><input class="form-control parminput parmnew" ng-focus="addParms('header', 'value')" type="text" placeholder="HEADER参数 VALUE"/></div>
+                        </div>
+                        <div class="parmlist postsetting" id="posttype" ng-show="apidata.type == 'POST'">
+                            <div class="btn-group" role="group" style="margin-bottom:5px;">
+                              <button data-type="urlencoded" type="button" class="btn btn-sm" ng-class="{'btn-success': apidata.posttype=='form', 'btn-default': apidata.posttype=='raw'}" ng-click="apidata.posttype='form'">form</button>
+                              <button data-type="raw" type="button" class="btn btn-sm" ng-class="{'btn-success': apidata.posttype=='raw', 'btn-default': apidata.posttype=='form'}" ng-click="apidata.posttype='raw'">raw</button>
+                            </div>
+                        </div>
+                        <div class="parmlist postsetting settingparm" id="postparmlist_urlencoded" ng-show="apidata.posttype == 'form'">
+                            <div class="parminputdiv" ng-repeat="postparm in apidata.postparms"><span class="label label-info leftspan">P</span><input class="form-control parminput parmnew postparmkey" type="text" placeholder="POST参数 KEY" ng-model="apidata.postparms[$index]['key']"/><input class="form-control parminput parmnew postparmvalue" type="text" placeholder="POST参数 VALUE" ng-model="apidata.postparms[$index]['value']"/><a class="delparm" title="点击删除" ng-click="delPostParm(postparm)"><img src="./img/delete.png"></a></div>
+                            <div class="parminputdiv"><span class="label label-info leftspan">P</span><input class="form-control parminput parmnew" ng-focus="addParms('post', 'key')" type="text" placeholder="POST参数 KEY"/><input class="form-control parminput parmnew" ng-focus="addParms('post', 'value')" type="text" placeholder="POST参数 VALUE"/></div>
+                        </div>
+                        <div class="parmlist postsetting settingparm" id="postparmlist_raw" ng-show="apidata.posttype == 'raw'">
+                            <div><textarea class="form-control" style="resize:none; height:60px;" id="rawdata" ng-model="apidata.raw"></textarea></div>
+                        </div>
+                        <div class="form-group" style="margin-top:10px; overflow:hidden; margin-bottom:0px;">
+                            <input id="dealrequest" type="button"  class="btn btn-primary" value="提交" style="float:left;" ng-click="dealRequest()"/>
+                            <input type="button" class="btn btn-info" value="存档" style="float:left; margin-left:5px;" ng-click="showModel()"/>
+                            <input type="button" class="btn btn-danger" value="重置" style="float:right;" ng-click="resetApi()"/>
+                        </div>
+                    </form>
+                    <div style="width:100%; height:1px; background:#bbb;clear:both;"></div>
+                    <div class="resulttitle" >
+                        <a ng-class="{current: showwhat=='body'}" ng-click="showwhat='body'">Body</a>
+                        <a ng-class="{current: showwhat=='cookie'}" ng-click="showwhat='cookie'">Cookies</a>
+                        <a ng-class="{current: showwhat=='header'}" ng-click="showwhat='header'">Headers</a>&nbsp;&nbsp;&nbsp;
+                        <span class="label label-default apiresultstatus" ng-show="statuscode">STATUS&nbsp;:</span>&nbsp;<span class="apiresultstatus" id="apistatuscode" ng-show="statuscode">{{statuscode}}</span>&nbsp;&nbsp;&nbsp;
+                        <span class="label label-default apiresultstatus" ng-show="statustime">TIME&nbsp;:</span>&nbsp;<span class="apiresultstatus" id="apistatustime" ng-show="statustime">{{statustime}}ms</span>
+                    </div>
+                    <div class="resultdeal" style="padding:10px; overflow:hidden;" ng-show="showwhat=='body'">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default" ng-class="{'btn-success': showtype=='raw'}" ng-click="changeShowType('raw')">原内容</button>
+                            <button type="button" class="btn btn-default" ng-class="{'btn-success': showtype=='json'}" ng-click="changeShowType('json')">JSON-Decode</button>
+                            <button type="button" class="btn btn-default" ng-class="{'btn-success': showtype=='base64'}" ng-click="changeShowType('base64')">Base64-Decode</button>
+                        </div>
+                    </div>
+                    <div class="resultbody resultshow" ng-show="showwhat=='body'">{{body}}</div>
+                    <div class="resultcookie resultshow" ng-show="showwhat=='cookie'">
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr ng-repeat="cookie in cookies"><td>{{cookie}}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="resultheader resultshow" ng-show="showwhat=='header'">
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr ng-repeat="(key, value) in headers">
+                                    <td>{{key}}</td>
+                                    <td>{{value}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">存档</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form class="form-horizontal">
+                                    <div class="form-group">
+                                        <label for="inputEmail3" class="col-sm-3 control-label">选择一个集合</label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control" id="collectionname">
+                                                <option value="">请选择集合</option>
+                                                <option ng-repeat="collect in collectiondata" value="{{$index}}">{{collect.collectionname}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputEmail3" class="col-sm-3 control-label">或者新建一个</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" id="newcollectionname" placeholder="集合名称">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputEmail3" class="col-sm-3 control-label">接口名称</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" id="requestname" placeholder="接口名称">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                <button type="button" class="btn btn-primary" ng-click="saveApidata()">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./js/jquery.min.js" ></script>
+<script src="./bootstrap/js/bootstrap.min.js" ></script>
+<script src="./lvjs/lvjs.js" ></script>
+<script>
+var fs = require('fs'), gui = require('nw.gui'), win = gui.Window.get(), request = require("request"), nodeurl = require('url');
+function appController($scope){
+    $scope.$on("addHistory", function(event, msg){
+        $scope.$broadcast("doAddHistory", msg);
+    });
+    $scope.$on("showApi", function(event, msg){
+        $scope.$broadcast("doShowApi", msg);
+    });
+    $scope.$on("pushCollectionData", function(event, msg){
+        $scope.$broadcast("collectionData", msg);
+    });
+    $scope.$on("addCollection", function(event, msg){
+        $scope.$broadcast("dealDoAddCollection", msg);
+    });
+};
+function windowsController($scope){
+    $scope.changeType = "glyphicon-fullscreen";
+    //window.ondragover = function (e) { e.preventDefault(); return false; };
+    //window.ondrop = function (e) { e.preventDefault(); return false; };
+    $scope.miniWindow = function(){ 
+        win.minimize();
+    };
+    $scope.changeWindow = function(){
+        if($scope.changeType == 'glyphicon-resize-small'){ 
+            win.unmaximize();
+            $scope.changeType = "glyphicon-fullscreen";
+        }else{ 
+            win.maximize();
+            $scope.changeType = "glyphicon-resize-small";
+        }
+    };
+    $scope.closeWindow = function(){ 
+        win.close();
+    };
+};
+function requestdataController($scope){ 
+    $scope.showtab = 'history';
+    $scope.historydata = JSON.parse(fs.readFileSync('./app/js/history.data'));
+    $scope.collectiondata = null;
+    $scope.$watch($scope.collectiondata, function(){
+        $scope.$emit("pushCollectionData", angular.toJson($scope.collectiondata));
+    });
+    $scope.collectiondata = JSON.parse(fs.readFileSync('./app/js/collection.data'));
+    $scope.saveData = function(type){
+        if(type == 'history'){
+            fs.writeFileSync('./app/js/history.data', angular.toJson($scope.historydata));
+        }else{
+            fs.writeFileSync('./app/js/collection.data', angular.toJson($scope.collectiondata));
+        }
+    };
+    $scope.delHistory = function(item){
+        $scope.historydata.splice($scope.historydata.indexOf(item), 1);
+        $scope.saveData('history');
+    };
+    $scope.delCollection = function(item, $event){
+        $.lvpop.show({
+            title : "删除集合",
+            html : "您确定要这么做吗？",
+            yesfun : function(){
+                $scope.$apply(function(){
+                    $scope.collectiondata.splice($scope.collectiondata.indexOf(item), 1);
+                    $scope.saveData('collection');
+                    $scope.$emit("pushCollectionData", angular.toJson($scope.collectiondata));
+                });
+            },
+            nofun : function(){}
+        });
+        $event.stopPropagation();
+    };
+    $scope.delRequest = function(request, collect){
+        $.lvpop.show({
+            title : "删除请求",
+            html : "您确定要这么做吗？",
+            yesfun : function(){
+                $scope.$apply(function(){
+                    collect.request.splice(collect.request.indexOf(request), 1);
+                    $scope.saveData('collection');
+                });
+            },
+            nofun : function(){}
+        });
+    };
+    $scope.showApi = function(item, $event){
+        $scope.$emit("showApi", angular.toJson(item));
+        if($scope.showtab == 'collection'){
+            console.log('aaaaaaa');
+            $("#collectionlist").find(".collectrequest").css({background: ""});
+            angular.element($event.target).parent().parent().css({background: "#ccc"});
+        }
+    };
+    $scope.showSelfRequest = function(index){
+        $(".request_"+index).toggle();
+    };
+    $scope.$on("doAddHistory", function(event, msg){
+        $scope.historydata.unshift(JSON.parse(msg));
+        if($scope.historydata.length>30){
+            $scope.historydata.pop();
+        }
+        $scope.saveData('history');
+
+    });
+    $scope.$on("dealDoAddCollection", function(event, msg){
+        if(msg.index != ''){
+            $scope.collectiondata[msg.index].request.unshift({requestname: msg.requestname, apidata: JSON.parse(msg.apidata)});
+        }else{
+            $scope.collectiondata.unshift({collectionname: msg.newcollectionname, request: [{requestname: msg.requestname, apidata: JSON.parse(msg.apidata)}]});
+        }
+        $scope.saveData('collection');
+        $scope.$emit("pushCollectionData", angular.toJson($scope.collectiondata));
+        $scope.showtab = "collection";
+    });
+};
+function apiconfController($scope){
+    $scope.collectiondata = null;
+    $scope.statuscode = 0;
+    $scope.statustime = 0;
+    $scope.responseheaders = {};
+    $scope.cookies = {};
+    $scope.body = "";
+    $scope.showtype="raw";
+    $scope.showwhat="body";
+    var rawbody = "";
+    var defheaders = {
+        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Encoding" : "deflate",
+        "Accept-Language" : "zh-CN,zh;q=0.8",
+        "Cache-Control" : "max-age=0",
+        "Pragma": "no-cache",
+        "User-Agent" : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36",
+        "Connection":"keep-alive"
+    };
+    function resetResponse(){
+        $scope.statuscode = 0;
+        $scope.statustime = 0;
+        $scope.responseheaders = {};
+        $scope.cookies = {};
+        $scope.body = "";
+        $scope.showtype="raw";
+        $scope.showwhat="body";
+        rawbody = "";
+        $(".resultbody").html('');
+    }
+    function formatJson(json, options) {
+        var reg = null,formatted = '',pad = 0,PADDING = '    '; // one can also use '\t' or a different number of spaces
+        // optional settings
+        options = options || {};
+        // remove newline where '{' or '[' follows ':'
+        options.newlineAfterColonIfBeforeBraceOrBracket = (options.newlineAfterColonIfBeforeBraceOrBracket === true) ? true : false;
+        // use a space after a colon
+        options.spaceAfterColon = (options.spaceAfterColon === false) ? false : true;
+        // begin formatting...
+        // make sure we start with the JSON as a string
+        if (typeof json !== 'string') {
+            json = JSON.stringify(json);
+        }
+        // parse and stringify in order to remove extra whitespace
+        try{
+            json = JSON.parse(json);
+        }catch(e){
+            return "NULL";
+        }
+        json = JSON.stringify(json);
+        // add newline before and after curly braces
+        reg = /([\{\}])/g;
+        json = json.replace(reg, '\r\n$1\r\n');
+        // add newline before and after square brackets
+        reg = /([\[\]])/g;
+        json = json.replace(reg, '\r\n$1\r\n');
+        // add newline after comma
+        reg = /(\,)/g;
+        json = json.replace(reg, '$1\r\n');
+        // remove multiple newlines
+        reg = /(\r\n\r\n)/g;
+        json = json.replace(reg, '\r\n');
+        // remove newlines before commas
+        reg = /\r\n\,/g;
+        json = json.replace(reg, ',');
+        // optional formatting...
+        if (!options.newlineAfterColonIfBeforeBraceOrBracket) {     
+            reg = /\:\r\n\{/g;
+            json = json.replace(reg, ':{');
+            reg = /\:\r\n\[/g;
+            json = json.replace(reg, ':[');
+        }
+        if (options.spaceAfterColon) {      
+            reg = /\:/g;
+            json = json.replace(reg, ': ');
+        }
+        $.each(json.split('\r\n'), function(index, node) {
+            var i = 0,indent = 0,padding = '';
+            if (node.match(/\{$/) || node.match(/\[$/)) {
+                indent = 1;
+            } else if (node.match(/\}/) || node.match(/\]/)) {
+                if (pad !== 0) {
+                    pad -= 1;
+                }
+            } else {
+                indent = 0;
+            }
+            for (i = 0; i < pad; i++) {
+                padding += PADDING;
+            }
+            formatted += node? (padding + node + '<br/>') : "";
+            pad += indent;
+        });
+        return "<pre>" + formatted + "</pre>";
+    };
+    function init(){
+        $scope.isShowUrlParms = false;
+        $scope.isShowHeaderParms = false;
+        $scope.apidata = {url: "", type: "GET", host: "", posttype: "", urlparms: [], headerparms: [], postparms: [], raw: ""};
+    }
+    init();
+    $scope.changeType = function(){
+        $scope.apidata.posttype = $("#requesttype").val() == "GET" ? "" : "form";
+    };
+    $scope.showUrlParms = function(){
+        $scope.isShowUrlParms = !$scope.isShowUrlParms;
+    };
+    $scope.showHeaderParms = function(){
+        $scope.isShowHeaderParms = !$scope.isShowHeaderParms;
+    };
+    $scope.addParms = function(type, place){
+        if(type == 'url'){
+            $scope.apidata.urlparms.push({key: "", value: ""});
+            setTimeout(function(){$("#urlparmlist").find(".urlparm"+place+":last").focus();}, 10);
+        }
+        if(type == 'header'){
+            $scope.apidata.headerparms.push({key: "", value: ""});
+            setTimeout(function(){$("#headerparmlist").find(".headerparm"+place+":last").focus();}, 10);
+        }
+        if(type == 'post'){
+            $scope.apidata.postparms.push({key: "", value: ""});
+            setTimeout(function(){$(".postparm"+place+":last").focus();}, 10);
+        }
+    };
+    $scope.delUrlParm = function(item){
+        $scope.apidata.urlparms.splice($scope.apidata.urlparms.indexOf(item), 1);
+    };
+    $scope.delHeaderParm = function(item){
+        $scope.apidata.headerparms.splice($scope.apidata.headerparms.indexOf(item), 1);
+    };
+    $scope.delPostParm = function(item){
+        $scope.apidata.postparms.splice($scope.apidata.postparms.indexOf(item), 1);
+    };
+    $scope.resetApi = function(){
+        init();
+        resetResponse();
+    };
+    $scope.dealRequest = function(){
+        var useheader = angular.copy(defheaders);
+        //note 处理url
+        if($scope.apidata.url.substr(0, 7) != 'http://' && $scope.apidata.url.substr(0, 7) != 'https:/'){
+            $scope.apidata.url = "http://" + $scope.apidata.url;
+        }
+        //note 处理GET参数
+        var getparms = "";
+        if($scope.apidata.urlparms.length>0){
+            angular.forEach($scope.apidata.urlparms, function(parm, key) {
+                if(parm.key.length>0){
+                    getparms += parm.key + "=" + parm.value +'&';
+                }
+            });
+        }
+        var tmp = nodeurl.parse($scope.apidata.url);
+        if(tmp.search && tmp.search.length>0){
+            tmp.search += "&" + getparms;
+        }else{
+            tmp.search = "?" + getparms;
+        }
+        //note 处理host绑定
+        if($scope.apidata.host){
+            useheader.Host = tmp.host;
+            tmp.host = $scope.apidata.host;
+        }
+        var urlstr = nodeurl.format(tmp);
+        //note 处理headers
+        var headersstr = "";
+        if($scope.apidata.headerparms.length>0){
+            angular.forEach($scope.apidata.headerparms, function(parm, key) {
+                if(parm.key.length>0){
+                    useheader[parm.key] = parm.value;
+                }
+            });
+        }
+        //note request option
+        var requestoption = { 
+            method: $scope.apidata.type, 
+            uri: urlstr,
+            headers: useheader,
+            strictSSL: false,
+            gzip: true,
+            timeout: 5000
+        };
+        //note 处理post数据
+        if($scope.apidata.type == 'POST'){
+            switch($scope.apidata.posttype){
+                case 'form':
+                    var formstr = "";
+                    if($scope.apidata.postparms.length>0){
+                        angular.forEach($scope.apidata.postparms, function(parm, key) {
+                            if(parm.key.length>0){
+                                formstr += parm.key + "=" + parm.value +'&';
+                            }
+                        });
+                    }
+                    requestoption.headers['Content-Type'] = "application/x-www-form-urlencoded";
+                    requestoption.body = formstr;
+                    break;
+                case 'raw':
+                    requestoption.headers['Content-Type'] = "text/plain;charset=UTF-8";
+                    requestoption.body  = $scope.apidata.raw;
+                    break;
+            }
+        }
+        resetResponse();
+        var starttime = new Date().getTime();
+        request(requestoption, function (error, response, body) {
+            if(error == null){
+                var usetime = new Date().getTime() - starttime;
+                $scope.$apply(function(){
+                    $scope.$emit("addHistory", angular.toJson($scope.apidata));
+                    $scope.statuscode = response.statusCode;
+                    $scope.statustime = usetime;
+                    $scope.cookies = response.headers['set-cookie'];
+                    delete response.headers['set-cookie'];
+                    $scope.headers = response.headers;
+                    $scope.body = rawbody = body;
+                    $scope.changeShowType('raw');
+                });
+            }else{
+                $.lvalert.error({msg : "请求失败："+error.code});
+            }
+        });
+    };
+    $scope.changeShowType = function(type){
+        $scope.showtype = type;
+        switch(type){
+            case 'raw':
+                $(".resultbody").text(rawbody);break;
+            case 'json':
+                $(".resultbody").html(formatJson(rawbody));break;
+            case 'base64':
+                var b = new Buffer(rawbody, 'base64');
+                var tmp = new Buffer(b.toString());
+                if(rawbody == tmp.toString('base64')){
+                    $(".resultbody").html(b.toString());
+                }else{
+                    $(".resultbody").html("NULL");
+                }
+                break;
+        }
+    };
+    $scope.$on("doShowApi", function(event, msg){
+        resetResponse();
+        $scope.apidata = JSON.parse(msg);
+        $scope.isShowUrlParms = $scope.apidata.urlparms.length>0 ? true : false;
+        $scope.isShowHeaderParms = $scope.apidata.headerparms.length>0 ? true : false;
+    });
+    $scope.$on("collectionData", function(event, msg){
+        $scope.collectiondata = JSON.parse(msg);
+    });
+    $scope.showModel = function(){
+        $("#newcollectionname").val("");
+        $("#requestname").val("");
+        $('#myModal').modal('toggle');
+    };
+    $scope.saveApidata = function(){
+        var index = $("#collectionname").val();
+        var newcollectionname = $("#newcollectionname").val();
+        if(index === '' && newcollectionname.length == 0){
+            $.lvalert.error({msg : "请选择集合"});
+        }else{
+            var requestname = $("#requestname").val();
+            requestname = requestname.length == 0 ? $scope.apidata.url : requestname;
+            $scope.$emit("addCollection", {'index': index, 'newcollectionname': newcollectionname, 'requestname': requestname, 'apidata': angular.toJson($scope.apidata)});
+        }
+        $('#myModal').modal('toggle');
+    };
+};
+</script>
+</html>

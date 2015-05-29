@@ -1,0 +1,24 @@
+.lv_alert_layer,
+.lv_alert_layer .gtl_ico_success,
+.lv_alert_layer .gtl_ico_fail,
+.lv_alert_layer .gtl_ico_warning,
+.lv_alert_layer .gtl_ico_clear,
+.lv_alert_layer .gtl_end{display:inline-block;height:54px;line-height:54px;font-size:14px;color:#606060;background-image:url("../images/lvalert_bg.png");_background-image:url("../images/lvalert_bg_ie6.png");}
+.lv_alert_layer_wrap{width:100%;position:fixed;_position:absolute;top:46%;left:0;text-align:center;z-index:65533}
+.lv_alert_layer{background-position:0 -161px;background-repeat:repeat-x;padding:0 18px 0 9px;margin:0 auto;position:relative}
+.lv_alert_layer .gtl_ico_success{background-position:-11px 0;left:-40px;top:0;width:40px;position:absolute}
+.lv_alert_layer .gtl_end{background-position:0 0;position:absolute;right:-6px;top:0;width:6px}
+.lv_alert_layer .gtl_close{background-image:url("../images/lvalert_hide.png");position:absolute;right:-10px; top: -6px;width:16px; height:16px; cursor: pointer;}
+.lv_alert_layer .gtl_close:hover{background-image:url("../images/lvalert_hidehover.png");}
+.lv_alert_layer .gtl_ico_fail{background-position:-11px -108px;position:absolute;left:-40px;top:0;width:40px}
+.lv_alert_layer .gtl_ico_warning{background-position:-11px -54px;position:absolute;left:-40px;top:0;width:40px}
+.lv_alert_layer .gtl_ico_clear{background-position:-6px 0;left:-45px;width:5px;position:absolute;top:0}
+.lv_alert_layer .gtl_ico_loading{ width:16px;height:16px;border:0;background-image:url("../images/lvalert_loading.gif");float:left;margin:19px 10px 0 5px}
+
+div#prompt{border-radius:5px; display:none;border: 1px solid #CCC; position:fixed;_position: absolute;z-index: 9999;background-color: #fff;}
+div#prompt_title{ cursor:move;border-radius:5px;font-size:14px;font-weight: bold;color: #333;padding-left:10px;height: 35px;line-height: 35px;border-bottom: 1px solid #cccccc;background-color:#fcfcfc; }
+span#prompt_close{ position: absolute;right: 10px;top: 10px; cursor: pointer; background: url("../images/close.png"); width: 14px;height: 13px;outline: none;display: block;}
+div#prompt_body{padding: 30px 20px;font-size:13px;line-height: 1.5;}
+div#prompt_bottom{display:none;position: absolute;bottom: 15px;right: 15px;}
+div#prompt_bottom a.btn{_display:block;_float:left;border: 1px solid #999999;border-radius:2px;font-size: 13px;padding: 5px 8px ;margin-left: 10px;cursor: pointer;color: #000000;color: #000000!important;background: #F3F3F3;background: -moz-linear-gradient(top,#ffffff 0%,#ebebeb 90%,#F3F3F3 100%);background: -webkit-linear-gradient(top,#ffffff 0%,#ebebeb 90%,#F3F3F3 100%);background: -o-linear-gradient(top,#ffffff 0%,#ebebeb 90%,#F3F3F3 100%);background: -ms-linear-gradient(top,#ffffff 0%,#ebebeb 90%,#F3F3F3 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff',endColorstr='#d7d7d7',GradientType=0 );background: linear-gradient(top,#ffffff 0%,#ebebeb 90%,#F3F3F3 100%);}
+div#prompt_bottom a.btn:hover{border: 1px solid #333333;}
